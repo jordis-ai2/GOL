@@ -538,12 +538,12 @@ def visualize_segmentation(
 
 @PIPELINES.register_module()
 class ObjaverseAugment:
-    def __init__(self, ignore_passthrough=False):
-        self.category_paths = glob.glob(os.path.join(RENDERED_OBJECTS_BASE_DIR, "*"))
+    def __init__(self, rendered_objects_base_dir=RENDERED_OBJECTS_BASE_DIR, ignore_passthrough=False):
+        self.category_paths = glob.glob(os.path.join(rendered_objects_base_dir, "*"))
         self.category_instances = {c: glob.glob(os.path.join(c, "*.png")) for c in self.category_paths}
         self.ignore_passthrough = ignore_passthrough
         self.usable_categories = None
-        # self.num_samples = 0
+        self.num_samples = 0
 
     def sample_image_to_paste(self) -> Tuple[Any, str]:
         # NOTE: randomly choose a category
@@ -589,6 +589,7 @@ class ObjaverseAugment:
             lvis_ann = parser.lvis_annotation(idx)
             # print("before ann boxes", parser.parse_ann(idx, lvis_ann)["bboxes"])  # TODO Only for debug
 
+            new_img = None
             try:
                 if random.random() > 0.5:
                     num_objects_to_add = random.randint(0, 3)
@@ -606,9 +607,11 @@ class ObjaverseAugment:
             # if new_img is not None:
             #     cv2.imwrite(f"debug_{self.num_samples}_before.jpg", background_image)
             #     cv2.imwrite(f"debug_{self.num_samples}_after.jpg", new_img)
-            #     fig = visualize_segmentation(new_img, lvis_ann)
+            #
+            #     fig = visualize_segmentation(new_img[:, :, ::-1], lvis_ann)
             #     plt.savefig(f"debug_{self.num_samples}_after_segm.jpg", bbox_inches='tight')
             #     plt.close(fig)
+            #
             #     self.num_samples += 1
 
         return results
